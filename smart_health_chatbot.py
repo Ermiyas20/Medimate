@@ -3,12 +3,10 @@ from fpdf import FPDF
 from datetime import date
 import re
 
-# --- Device Detection ---
-def is_mobile():
-    ua = st.session_state.get('user_agent', "")
-    return bool(re.search("iphone|android|blackberry|mobile", ua.lower()))
+# --- Must come FIRST before any Streamlit UI commands ---
+st.set_page_config(page_title="MediMate", layout="wide")
 
-# --- User Agent Workaround (inject JS to get UA) ---
+# --- Inject JS to capture user agent ---
 def get_user_agent():
     user_agent = """
     <script>
@@ -21,15 +19,19 @@ def get_user_agent():
     """
     st.components.v1.html(user_agent, height=0)
 
+# --- User Agent Setup ---
 if 'user_agent' not in st.session_state:
     st.session_state['user_agent'] = ""
-get_user_agent()
+    get_user_agent()
 
-# --- App Style Based on Device ---
+def is_mobile():
+    ua = st.session_state.get('user_agent', "")
+    return bool(re.search("iphone|android|blackberry|mobile", ua.lower()))
+
+# --- Device Flag ---
 MOBILE = is_mobile()
-st.set_page_config(page_title="MediMate", layout="wide" if not MOBILE else "centered")
 
-# --- Sidebar or Navbar ---
+# --- Navigation ---
 if not MOBILE:
     st.sidebar.title("MediMate")
     st.sidebar.info("Your Smart Health Companion")
@@ -79,7 +81,7 @@ elif page == "📊 BMI Calculator":
         else:
             st.error("Obese")
 
-# --- PDF Report Generator ---
+# --- Health Report PDF ---
 elif page == "📝 Health Report":
     st.header("📝 Generate Health Report")
     name = st.text_input("Your Name")
